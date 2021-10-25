@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:util="http://www.springframework.org/schema/util"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security
+        http://www.springframework.org/schema/security/spring-security.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <http pattern="/js/**" security="none"/>  
+    <http pattern="/css/**" security="none"/>
+    <http pattern="/images/**" security="none"/>
+    <http pattern="/**/*.js" security="none"/>
+    <http pattern="/**/*.css" security="none"/>
+    <http pattern="/**/*.gif" security="none"/>
+    <http pattern="/**/*.jpg" security="none"/>
+    <http pattern="/**/*.png" security="none"/>
+    <http pattern="/**/*.html" security="none"/>
+    <http pattern="/**/*.htm" security="none"/>
+    <http pattern="/**/*.mp3" security="none"/>
+    <http pattern="/**/*.ttf" security="none"/>
+    <http pattern="/**/*.woff" security="none"/>
+    <http pattern="/**/*.woff2" security="none"/>
+    <http pattern="/**/*.mp4" security="none"/>
+    <http pattern="/login" security="none"/>        
+    <http pattern="/login.jsp" security="none"/>
+    <http pattern="/ssoLogin" security="none"/>
+    <http pattern="/sessionout" security="none"/>
+    <http pattern="/logintwice" security="none"/>
+    <http pattern="/index" security="none"/>
+    <http pattern="/" security="none"/>
+    <http pattern="/jsp/error/*.jsp" security="none"/>
+    <http pattern="/flowapi/*" security="none"/>
+    <http pattern="/js/pageOffice/*" security="none"/>
+    <http pattern="/jsp/pageOffice/*" security="none"/>
+    <http pattern="/poserver.zz" security="none"/>
+    <http pattern="/posetup.exe" security="none"/>
+    <http pattern="/pageoffice.js" security="none"/>
+    <http pattern="/jquery.min.js" security="none"/>
+    <http pattern="/pobstyle.css" security="none"/>
+    <http pattern="/pageoffice/*" security="none"/>
+    
+  	<!-- Spring Security No CAS Start -->
+    
+  	<http auto-config="true"  >
+    	<form-login login-page='/login' default-target-url='/home'
+    		 always-use-default-target='true' authentication-success-handler-ref="authenticationSuccessHandler"  authentication-failure-handler-ref="authenticationFailureHandler"/>
+    	<logout invalidate-session="true" logout-success-url="/logout" delete-cookies="JSESSIONID"/>
+    	<access-denied-handler error-page="/error/err403"/>  
+  		<session-management invalid-session-url="/sessionout" >
+            <concurrency-control max-sessions="20"  expired-url="/logintwice" error-if-maximum-exceeded="true" />
+        </session-management>
+        <custom-filter after="LAST" ref="permissionFilterSecurityInterceptor" />
+  	    <csrf request-matcher-ref="csrfSecurityRequestMatcher" />
+  	</http>
+
+    <beans:bean id="csrfSecurityRequestMatcher" class="com.sunyard.frame.app.security.CsrfSecurityRequestMatcher">
+    </beans:bean>
+
+    <beans:bean id="authenticationSuccessHandler" class="com.sunyard.frame.app.security.AuthenticationSuccessHandlerImpl">
+    </beans:bean>
+  	<beans:bean id="authenticationFailureHandler" class="com.sunyard.frame.app.security.AuthenticationFailureHandlerImpl">
+  		<beans:property name="defaultFailureUrl" value="/login?error=true"/>
+  	</beans:bean>
+
+    <beans:bean class="org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration">
+        <beans:property name="maxInactiveIntervalInSeconds" value="3600"/>
+        <!--<beans:property name="defaultRedisSerializer" >
+            <beans:bean class="com.alibaba.fastjson.support.spring.GenericFastJsonRedisSerializer">
+            </beans:bean>
+        </beans:property>-->
+    </beans:bean>
+    <util:constant static-field="org.springframework.session.data.redis.config.ConfigureRedisAction.NO_OP"/>
+
+   	
+   	<authentication-manager alias="authenticationManager">
+	  	<authentication-provider ref="authenticationProvider"/>
+   	</authentication-manager>
+
+<!--   	<beans:bean id="authenticationProvider"  class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">-->
+    <beans:bean id="authenticationProvider"  class="com.sunyard.frame.base.util.AesPasswordEncoder">
+    <beans:property name="userDetailsService" ref="securityManager" />
+	    <beans:property name="hideUserNotFoundExceptions" value="false" />  
+	    <beans:property name="passwordEncoder" ref="passwordEncoder"/>
+	</beans:bean>  
+  
+	<beans:bean class="org.springframework.security.authentication.encoding.Md5PasswordEncoder" id="passwordEncoder"/>
+  	<!-- Spring Security No CAS End -->
+   	
+  	<!-- Spring Security CAS Start -->
+   	
+  	<!-- 
+   	<http auto-config="true" entry-point-ref="casProcessingFilterEntryPoint">
+    	<logout logout-success-url="${cas.service.url}/logout"/>
+        <custom-filter position="CAS_FILTER" ref="casProcessingFilter" />
+        <custom-filter after="LAST" ref="permissionFilterSecurityInterceptor" />
+  	</http>
+   	
+   	<authentication-manager alias="authenticationManager">
+	  	<authentication-provider ref="casAuthenticationProvider">
+	   	</authentication-provider>
+   	</authentication-manager>  
+   	
+   	<beans:bean id="casProcessingFilter" class="org.springframework.security.cas.web.CasAuthenticationFilter">
+	    <beans:property name="authenticationManager" ref="authenticationManager"/>
+	</beans:bean>
+	
+	<beans:bean id="casProcessingFilterEntryPoint"
+	            class="org.springframework.security.cas.web.CasAuthenticationEntryPoint">
+	    <beans:property name="loginUrl" value="${cas.service.url}/login" />
+	    <beans:property name="serviceProperties" ref="casServiceProperties" />
+	</beans:bean>
+	
+	<beans:bean id="casServiceProperties" class="org.springframework.security.cas.ServiceProperties">
+	    <beans:property name="service" value="${cas.home.url}/j_spring_cas_security_check"/>
+	    <beans:property name="sendRenew" value="false"/>
+	</beans:bean>
+	
+	<beans:bean id="casAuthenticationProvider"
+	            class="org.springframework.security.cas.authentication.CasAuthenticationProvider">
+	    <beans:property name="userDetailsService" ref="securityManager" />
+	    <beans:property name="serviceProperties" ref="casServiceProperties" />
+	    <beans:property name="ticketValidator">
+	        <beans:bean class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator">
+	            <beans:constructor-arg index="0" value="${cas.service.url}" />
+	        </beans:bean>
+	    </beans:property>
+	    <beans:property name="key" value="${cas.key}" />
+	</beans:bean>
+   	 -->
+  	<!-- Spring Security CAS End -->
+   	
+   	<beans:bean id="accessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">  
+        <beans:property name="allowIfAllAbstainDecisions" value="false"/>  
+        <beans:property name="decisionVoters">  
+            <beans:list>  
+                <beans:bean class="org.springframework.security.access.vote.RoleVoter"/>  
+                <beans:bean class="org.springframework.security.access.vote.AuthenticatedVoter"/>  
+            </beans:list>  
+        </beans:property>  
+    </beans:bean>  
+       
+    <beans:bean id="permissionFilterSecurityInterceptor" class="org.springframework.security.web.access.intercept.FilterSecurityInterceptor">  
+        <beans:property name="authenticationManager" ref="authenticationManager"/>  
+        <beans:property name="accessDecisionManager" ref="accessDecisionManager"/>  
+        <beans:property name="securityMetadataSource" ref="permissionFilterInvocationDefinitionSource" />  
+        <beans:property name="observeOncePerRequest" value="false" />  
+    </beans:bean>  
+       
+    <beans:bean id="permissionFilterInvocationDefinitionSource" class="com.sunyard.frame.app.filter.PermissionFilterInvocationDefinitionSource"/>
+  	
+  	<beans:bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener"/>
+	
+	<!-- 验证码Jcaptcha相关的配置 -->
+	<!-- 
+	<beans:bean id="captchaService"  
+        class="com.octo.captcha.service.image.DefaultManageableImageCaptchaService">  
+        <beans:property name="captchaEngine">  
+            <beans:bean class="sunyard.web.frame.jcaptcha.JcaptchaEngine" />  
+        </beans:property>
+    --> 
+        <!-- 默认生成的图片180秒过期 , 可另行设置   -->
+    <!--
+        <property name="minGuarantedStorageDelayInSeconds" value="180" />  
+    </beans:bean>
+    -->
+</beans:beans>

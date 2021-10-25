@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+	<!-- 引入配置文件 -->
+	<!--<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">-->
+	<bean id="propertyConfigurer" class="com.sunyard.frame.base.property.MyPropertyPlaceholderConfigurer">
+		<property name="ignoreUnresolvablePlaceholders" value="true"/>
+		<property name="locations">
+			<list>
+				<value>classpath:config/global.properties</value>
+				<value>classpath:config/jdbc.properties</value>
+				<value>classpath:config/redis.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="globalProperties" class="com.sunyard.frame.base.properties.GlobalProperties">
+		<property name="extJsHomePath" value="${ext.js.home.path}" />
+		<property name="storageType" value="${storageType}" />
+		<property name="storageBean" value="${storageBean}" />
+		<property name="storagePath" value="${storagePath}" />		
+		<property name="storageMode" value="${storageMode}"/>
+		<property name="runautotask" value="${runautotask}"/>
+		<property name="loginPagePath" value="${loginpage.path}"/>
+		<property name="resourceDt" value="${resourceDt}"/>
+		<property name="resourceSuffix" value="${resourceSuffix}"/>
+		<property name="projectCode" value="${projectCode}"/>
+		<property name="runetltask" value="${runetltask}"/>
+	</bean>
+
+</beans>

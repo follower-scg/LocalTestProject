@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.apache:inceptor:5.2.2">
+    <CLASSES>
+      <root url="jar://E:/develop/sunyard_base_repository/org/apache/inceptor/5.2.2/inceptor-5.2.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://E:/develop/sunyard_base_repository/org/apache/inceptor/5.2.2/inceptor-5.2.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://E:/develop/sunyard_base_repository/org/apache/inceptor/5.2.2/inceptor-5.2.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

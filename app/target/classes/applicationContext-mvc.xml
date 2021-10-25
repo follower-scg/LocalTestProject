@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:mvc="http://www.springframework.org/schema/mvc"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd 
+	http://www.springframework.org/schema/mvc
+	http://www.springframework.org/schema/mvc/spring-mvc.xsd
+
+
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- 启用注解，并定义组件查找规则 ，mvc层只负责扫描@Controller -->
+	<context:component-scan base-package="com.sunyard"
+		use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+	</context:component-scan>
+	
+	<!-- 资源访问处理器 -->
+	<mvc:resources mapping="/ext5/**" location="/ext5/" />
+	<mvc:resources mapping="/res/**" location="/res/" />
+	<mvc:resources mapping="/app/**" location="/app/" />
+	<mvc:resources mapping="/js/**" location="/js/" />
+	<mvc:resources mapping="/jsp/pageOffice/**" location="/jsp/pageOffice/" />
+	<mvc:resources mapping="/poserver.zz" location="/poserver.zz" />
+	<mvc:resources mapping="/jsp/help/*.html" location="/jsp/help/" />
+	<mvc:resources mapping="/ueditor/**" location="/ueditor/" />
+	<!--非现场使用-->
+	<mvc:resources mapping="/static/**" location="/static/" />
+	<mvc:resources mapping="/jsdef/**" location="/jsdef/" />
+
+	<mvc:resources mapping="/jsp/test/**" location="/jsp/test/" />
+	<mvc:resources mapping="/jsp/common/js/**" location="/jsp/common/js/" />
+	<!--
+	<mvc:resources mapping="/upload/advertisements/**" location="/upload/advertisements/"/>
+	-->
+	<!-- 格式转换工厂 -->
+	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">  
+	    <property name="formatters">  
+	        <set>  
+	        	<!-- 日期格式转换 -->
+	            <bean class="com.sunyard.frame.base.util.DateFormatter"/>
+	        </set>
+	    </property>
+	</bean>
+
+<!-- 定义注解驱动  -->
+	<mvc:annotation-driven conversion-service="conversionService">
+		<mvc:message-converters>
+
+			<!-- JSON请求处理 -->
+			<ref bean="mappingJackson2HttpMessageConverter"/>
+        </mvc:message-converters>
+		<mvc:return-value-handlers>
+			<ref bean="returnResultMethodReturnValueHandler"/>
+		</mvc:return-value-handlers>
+	</mvc:annotation-driven>
+
+	<bean id="returnResultMethodReturnValueHandler" class="com.sunyard.frame.base.handler.ReturnResultMethodReturnValueHandler">
+		<property name="converter">
+			<ref bean="mappingJackson2HttpMessageConverter"/>
+		</property>
+	</bean>
+
+	<bean id="mappingJackson2HttpMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+		<property name="objectMapper">
+			<bean class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
+				<property name="deserializersByType">
+					<map>
+						<entry key="java.util.Date">
+							<bean class="com.sunyard.frame.base.util.JsonDateDeserializer"/>
+						</entry>
+					</map>
+				</property>
+				<property name="serializersByType">
+					<map>
+						<entry key="oracle.sql.TIMESTAMP">
+							<bean class="com.sunyard.frame.base.util.OracleTIMESTAMPSerializer"/>
+						</entry>
+					</map>
+				</property>
+			</bean>
+		</property>
+		<!-- 解决IE中返回application/json弹出下载框问题 -->
+		<property name="supportedMediaTypes">
+			<list>
+				<value>text/plain;charset=UTF-8</value>
+				<value>application/json;charset=UTF-8</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- 定义首页 -->
+	<mvc:view-controller path="/" view-name="redirect:/home" />
+
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**/*" />
+			<mvc:exclude-mapping path="/" />
+			<mvc:exclude-mapping path="/login" />
+			<mvc:exclude-mapping path="/logout" />
+			<!--<mvc:exclude-mapping path="/index" />-->
+			<mvc:exclude-mapping path="/sessionout" />
+			<mvc:exclude-mapping path="/js/pageOffice/*" />
+			<mvc:exclude-mapping path="/poserver.zz" />
+			<mvc:exclude-mapping path="/posetup.exe" />
+			<mvc:exclude-mapping path="/pageoffice.js" />
+			<mvc:exclude-mapping path="/jquery.min.js" />
+			<mvc:exclude-mapping path="/pobstyle.css" />
+			<mvc:exclude-mapping path="/pageoffice/*" />
+			<bean class="com.sunyard.frame.base.filter.MySessionTimeoutInterceptor">
+			</bean>
+		</mvc:interceptor>
+		<!-- <mvc:interceptor>
+			<mvc:mapping path="/**/*" />
+			<mvc:exclude-mapping path="/" />
+			<mvc:exclude-mapping path="/login" />
+			<mvc:exclude-mapping path="/logout" />			
+			<mvc:exclude-mapping path="/index" />
+			<mvc:exclude-mapping path="/sessionout" />			
+			<bean class="com.sunyard.frame.base.filter.MyHandlerInterceptorAdapter" />
+		</mvc:interceptor>		 -->
+		<!--菜单校验请求次数过多 关闭-->
+		<mvc:interceptor>
+			<mvc:mapping path="/**/*" />
+			<mvc:exclude-mapping path="/" />
+			<mvc:exclude-mapping path="/login" />
+			<mvc:exclude-mapping path="/logout" />
+			<mvc:exclude-mapping path="/index" />
+			<mvc:exclude-mapping path="/ssoLogin" />
+			<bean class="com.sunyard.frame.app.filter.MyHandlerInterceptorMenuURL" />
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+	<!-- 视图处理器 -->
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/jsp/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="UTF-8" />
+		<!-- 最大上传大小 10M -->
+		<property name="maxUploadSize" value="10485760" />
+		<property name="uploadTempDir" value="upload" />
+	</bean>
+	
+	<bean id="exceptionHandler" class="com.sunyard.frame.workflow.app.exception.WorkflowExceptionHandler" />
+</beans>

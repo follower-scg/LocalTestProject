@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Updated by PanXiaotan -->
+<Configuration>
+	<Properties>
+        <Property name="fileName">frame.log</Property>
+        <Property name="filePath">frame-2.0.3/</Property>
+    </Properties>
+	<Appenders>
+		<Console name="STDOUT" target="SYSTEM_OUT">
+			<PatternLayout charset="UTF-8"
+				pattern="%-d{HH:mm:ss,SSS}[%-5p][%t] [%m] [%F:%L][%-5c]%n"  />
+		</Console>
+		<Console name="STDOUT_ERROR" target="SYSTEM_OUT">
+			<!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+			<ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY" />		
+			<PatternLayout charset="UTF-8" pattern="%-d{HH:mm:ss,SSSS}[%-5p][%t] [%m] [%F:%L][%-5c] %n"/>
+		</Console>		
+		<RollingRandomAccessFile name="DEBUG_LOG" fileName="${filePath}${fileName}"
+			immediateFlush="false"
+			filePattern="${filePath}$${date:yyyy-MM-dd}/agdebug_%d{yyyy-MM-dd}-%i.log.gz"
+			append="true">
+			
+			<PatternLayout charset="UTF-8" 
+				pattern="%-d{yyyy-MM-dd HH:mm:ss,SSS}[%-5p][%t] [%m] [%F:%L][%-5c]%n" />
+			<SizeBasedTriggeringPolicy size="100MB" />
+			<DefaultRolloverStrategy max="20"/> 
+		</RollingRandomAccessFile>
+		<Async name="ASYNC_DEBUG_LOG">
+			<AppenderRef ref="DEBUG_LOG" />
+		</Async>
+	</Appenders>
+	
+	<Loggers>
+		<Root level="console">
+			<AppenderRef ref="STDOUT" />
+			<AppenderRef ref="ASYNC_DEBUG_LOG"/>
+		</Root>
+		<logger name="com.sunyard" level="INFO">
+		</logger>
+	</Loggers>
+</Configuration>

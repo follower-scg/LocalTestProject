@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!--Quartz-->
+    <!-- 集成方式：JobDetailFactoryBean，并且任务类需要继承QuartzJobBean-->
+    <!-- 定义jobDetail -->
+    <bean id="jobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+        <!-- durability 表示任务完成之后是否依然保留到数据库，默认false   -->
+        <property name="durability" value="true" />
+        <!-- 当Quartz服务被中止后，再次启动或集群中其他机器接手任务时会尝试恢复执行之前未完成的所有任务 -->
+        <property name="requestsRecovery" value="true" />
+        <property name="jobClass" value="com.sunyard.frame.app.util.scheduler.AutoTaskBean"/>
+    </bean>
+    <!-- quartz配置  动态配置所以我们将 Factory 作为一个service一样的接口 QuartzJobFactory.java-->
+    <!-- 调度工厂 -->
+    <bean id="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="autoStartup" value="false" />
+        <property name="dataSource" ref="dataSourceOne" />
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="overwriteExistingJobs" value="true"/>
+        <property name="applicationContextSchedulerContextKey" value="applicationContextKey" />
+        <property name="configLocation" value="classpath:config/quartz.properties" />
+    </bean>
+</beans>
