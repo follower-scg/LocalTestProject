@@ -1,2 +1,2 @@
 # LocalTestProject
- test
+The program is used for daily testing and learning
